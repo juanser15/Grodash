@@ -25,7 +25,31 @@ from scipy import stats
 from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
-COLORS = {}
+COLORS = {
+    'bg_primary': '#0a0e12',
+    'bg_secondary': '#12171d',
+    'bg_tertiary': '#1a2028',
+    'bg_card': '#151b23',
+    'bg_hover': '#1e2530',
+    'border': '#2a3441',
+    'border_light': '#3d4a5c',
+    'text_primary': '#f0f4f8',
+    'text_secondary': '#94a3b8',
+    'text_muted': '#64748b',
+    'green': '#22c55e',
+    'green_light': '#4ade80',
+    'green_dim': 'rgba(34, 197, 94, 0.12)',
+    'red': '#ef4444',
+    'red_light': '#f87171',
+    'red_dim': 'rgba(239, 68, 68, 0.12)',
+    'blue': '#3b82f6',
+    'blue_light': '#60a5fa',
+    'gold': '#f59e0b',
+    'purple': '#a855f7',
+    'cyan': '#06b6d4',
+    'orange': '#f97316',
+    'pink': '#ec4899',
+}
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE CONFIG + INSTITUTIONAL OVERLAY (Manager-ready)
@@ -815,7 +839,7 @@ def compute_trade_kpis(df: pd.DataFrame) -> dict:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CHART_LAYOUT = dict(
-    paper_bgcolor=COLORS['bg_secondary'],
+    paper_bgcolor=COLORS.get('bg_secondary', '#12171d'),
     plot_bgcolor=COLORS['bg_primary'],
     font=dict(family='Inter, sans-serif', color=COLORS['text_primary'], size=12),
     margin=dict(l=50, r=30, t=50, b=50),
