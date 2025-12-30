@@ -25,6 +25,7 @@ from scipy import stats
 from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
+COLORS = {}
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE CONFIG + INSTITUTIONAL OVERLAY (Manager-ready)
