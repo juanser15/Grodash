@@ -39,7 +39,7 @@ st.set_page_config(
 )
 
 try:
-    st.session_state[\"sidebar_state\"] = \"expanded\"
+    st.session_state["sidebar_state"] = "expanded"
 except Exception:
     pass
 # ═══════════════════════════════════════════════════════════════════════════════
