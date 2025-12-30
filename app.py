@@ -14,7 +14,7 @@ Author: SciTech Quantitative Research | SciTech Investments
 
 VERSION = "4.1"
 
-ENV = \"PROD\"
+ENV = "PROD"
 import io
 import numpy as np
 import pandas as pd
