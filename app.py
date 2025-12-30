@@ -27,58 +27,36 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PAGE CONFIG
+# PAGE CONFIG + INSTITUTIONAL OVERLAY (Manager-ready)
 # ═══════════════════════════════════════════════════════════════════════════════
+
+# Keep your VERSION constant above (already in your file)
+# VERSION = "4.1"
+ENV = "PROD"  # change to "STAGING" / "DEV" if needed
 
 st.set_page_config(
     page_title="SciTech Dashboard",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# THEME
-# ═══════════════════════════════════════════════════════════════════════════════
-
-COLORS = {
-    'bg_primary': '#0a0e12',
-    'bg_secondary': '#12171d',
-    'bg_tertiary': '#1a2028',
-    'bg_card': '#151b23',
-    'bg_hover': '#1e2530',
-    'border': '#2a3441',
-    'border_light': '#3d4a5c',
-    'text_primary': '#f0f4f8',
-    'text_secondary': '#94a3b8',
-    'text_muted': '#64748b',
-    'green': '#22c55e',
-    'green_light': '#4ade80',
-    'green_dim': 'rgba(34, 197, 94, 0.12)',
-    'red': '#ef4444',
-    'red_light': '#f87171',
-    'red_dim': 'rgba(239, 68, 68, 0.12)',
-    'blue': '#3b82f6',
-    'blue_light': '#60a5fa',
-    'gold': '#f59e0b',
-    'purple': '#a855f7',
-    'cyan': '#06b6d4',
-    'orange': '#f97316',
-    'pink': '#ec4899',
-}
-
-PIE_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#a855f7', '#06b6d4', '#f97316', '#ec4899', 
-              '#ef4444', '#64748b', '#84cc16', '#14b8a6', '#8b5cf6', '#f43f5e', '#0ea5e9']
+# Force sidebar state (prevents "commander disappeared" situations across sessions)
+try:
+    st.session_state["sidebar_state"] = "expanded"
+except Exception:
+    pass
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CSS
+# CSS (append your existing CSS here; keep it single-injection)
+# IMPORTANT: don't nuke the Streamlit header entirely; we hide menu/footer but keep layout stable.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CUSTOM_CSS = """
+CUSTOM_CSS = f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-:root {
+:root {{
     --bg-primary: #0a0e12;
     --bg-secondary: #12171d;
     --bg-card: #151b23;
@@ -88,220 +66,89 @@ CUSTOM_CSS = """
     --green: #22c55e;
     --red: #ef4444;
     --blue: #3b82f6;
-}
+}}
 
-/* Hide Streamlit branding */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
+.stApp {{ background: var(--bg-primary); }}
 
-.stApp { background: var(--bg-primary); }
-
-.block-container {
+.block-container {{
     padding: 1.2rem 2rem 3rem 2rem;
     max-width: 1900px;
-}
+}}
+
+
+/* Prevent layout jump due to hidden header */
+.block-container {{ padding-top: 1.2rem; }}
 
 /* ═══════════════════════════════════════════════════════════════
-   SIDEBAR STYLING - Premium Look
+   OVERLAYS: Confidential banner + Version tag + Watermark
    ═══════════════════════════════════════════════════════════════ */
 
-section[data-testid="stSidebar"] {
+.confidential-banner {{
+    position: fixed;
+    top: 12px;
+    right: 24px;
+    z-index: 9999;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(240,244,248,0.75);
+    background: linear-gradient(135deg, rgba(30,41,59,0.45), rgba(15,23,42,0.45));
+    border: 1px solid rgba(71,85,105,0.45);
+    padding: 6px 10px;
+    border-radius: 6px;
+    backdrop-filter: blur(8px);
+}}
+
+.version-tag {{
+    position: fixed;
+    top: 14px;
+    left: 28px;
+    z-index: 9999;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: rgba(148,163,184,0.78);
+}}
+
+.scitech-watermark {{
+    position: fixed;
+    bottom: 28px;
+    right: 32px;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    color: rgba(148,163,184,0.06);
+}}
+
+/* ═══════════════════════════════════════════════════════════════
+   YOUR EXISTING CSS GOES BELOW (paste as-is)
+   Keep all your sidebar/tabs/cards/table styles unchanged.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- START: keep your current styling --- */
+
+/* Sidebar styling (your existing block can stay) */
+section[data-testid="stSidebar"] {{
     background: linear-gradient(180deg, #0f1419 0%, #0a0e12 100%);
     border-right: 1px solid rgba(42, 52, 65, 0.5);
-}
-
-section[data-testid="stSidebar"] > div:first-child {
+}}
+section[data-testid="stSidebar"] > div:first-child {{
     padding-top: 1.5rem;
     padding-left: 1.2rem;
     padding-right: 1.2rem;
-}
-
-/* Sidebar text styling */
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] label {
-    font-family: 'Inter', sans-serif !important;
-    color: #94a3b8 !important;
-}
-
-/* File uploader - Complete redesign */
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] > div:first-child {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%) !important;
-    border: 1px dashed rgba(71, 85, 105, 0.5) !important;
-    border-radius: 10px !important;
-    padding: 16px !important;
-    transition: all 0.2s ease !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] > div:first-child:hover {
-    border-color: rgba(59, 130, 246, 0.5) !important;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] button {
-    background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%) !important;
-    border: none !important;
-    border-radius: 6px !important;
-    color: white !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 12px !important;
-    padding: 8px 16px !important;
-    transition: all 0.2s ease !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] button:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
-    transform: translateY(-1px);
-}
-
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] small {
-    color: #64748b !important;
-    font-size: 10px !important;
-}
-
-/* Uploaded file indicator */
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] {
-    background: rgba(34, 197, 94, 0.1) !important;
-    border: 1px solid rgba(34, 197, 94, 0.3) !important;
-    border-radius: 6px !important;
-    padding: 8px 12px !important;
-    margin-top: 8px !important;
-}
-
-/* Selectbox styling */
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
-    background: rgba(30, 41, 59, 0.4) !important;
-    border: 1px solid rgba(71, 85, 105, 0.4) !important;
-    border-radius: 8px !important;
-    font-family: 'Inter', sans-serif !important;
-    color: #e2e8f0 !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div:hover {
-    border-color: rgba(59, 130, 246, 0.5) !important;
-}
-
-/* Checkbox styling */
-section[data-testid="stSidebar"] [data-testid="stCheckbox"] {
-    background: transparent !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stCheckbox"] label {
-    color: #94a3b8 !important;
-    font-size: 13px !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stCheckbox"] span[data-testid="stCheckboxBox"] {
-    background: rgba(30, 41, 59, 0.6) !important;
-    border: 1px solid rgba(71, 85, 105, 0.5) !important;
-    border-radius: 4px !important;
-}
-
-/* Radio buttons */
-section[data-testid="stSidebar"] [data-testid="stRadio"] > div {
-    gap: 6px !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stRadio"] label {
-    background: rgba(30, 41, 59, 0.3) !important;
-    border: 1px solid rgba(71, 85, 105, 0.3) !important;
-    border-radius: 6px !important;
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-    color: #94a3b8 !important;
-    transition: all 0.15s ease !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
-    background: rgba(30, 41, 59, 0.5) !important;
-    border-color: rgba(71, 85, 105, 0.5) !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stRadio"] label[data-checked="true"] {
-    background: rgba(59, 130, 246, 0.15) !important;
-    border-color: rgba(59, 130, 246, 0.5) !important;
-    color: #e2e8f0 !important;
-}
-
-/* Date input */
-section[data-testid="stSidebar"] [data-testid="stDateInput"] > div > div {
-    background: rgba(30, 41, 59, 0.4) !important;
-    border: 1px solid rgba(71, 85, 105, 0.4) !important;
-    border-radius: 8px !important;
-}
-
-/* Divider */
-section[data-testid="stSidebar"] hr {
-    border-color: rgba(71, 85, 105, 0.3) !important;
-    margin: 20px 0 !important;
-}
-
-/* Section labels in sidebar */
-.sidebar-section-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.sidebar-section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(71, 85, 105, 0.4) 0%, transparent 100%);
-}
-
-.sidebar-input-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    color: #94a3b8;
-    margin-bottom: 6px;
-    display: block;
-}
-
-.sidebar-hint {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    color: #475569;
-    margin-top: 4px;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 600 !important;
-    color: var(--text-primary) !important;
-    letter-spacing: -0.02em;
-}
-
-p, span, label, div, td, th {
-    font-family: 'Inter', sans-serif;
-}
+}}
 
 /* Tabs */
-.stTabs [data-baseweb="tab-list"] {
+.stTabs [data-baseweb="tab-list"] {{
     gap: 0;
     background: var(--bg-secondary);
     border-radius: 12px;
     padding: 6px;
     border: 1px solid var(--border);
-}
-
-.stTabs [data-baseweb="tab"] {
+}}
+.stTabs [data-baseweb="tab"] {{
     background: transparent;
     border-radius: 8px;
     padding: 12px 32px;
@@ -309,201 +156,88 @@ p, span, label, div, td, th {
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 14px;
-}
-
-.stTabs [aria-selected="true"] {
+}}
+.stTabs [aria-selected="true"] {{
     background: linear-gradient(135deg, #1a2028 0%, #151b23 100%) !important;
     color: var(--text-primary) !important;
     border: 1px solid var(--border) !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
+}}
 
-/* Cards */
-.metric-card {
+/* Metric cards */
+.metric-card {{
     background: linear-gradient(145deg, #151b23 0%, #12171d 100%);
     border: 1px solid #2a3441;
     border-radius: 12px;
     padding: 20px 24px;
     transition: all 0.2s ease;
-}
-
-.metric-card:hover {
+}}
+.metric-card:hover {{
     border-color: #3d4a5c;
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-
-.metric-label {
+}}
+.metric-label {{
     color: #94a3b8;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 8px;
-}
-
-.metric-value {
+}}
+.metric-value {{
     color: #f0f4f8;
     font-size: 28px;
     font-weight: 600;
     font-family: 'JetBrains Mono', monospace;
     letter-spacing: -0.02em;
-}
-
-.metric-delta {
-    font-size: 12px;
-    font-weight: 500;
-    margin-top: 4px;
-}
-
-.delta-positive { color: #22c55e; }
-.delta-negative { color: #ef4444; }
-
-/* Section headers */
-.section-title {
-    color: #f0f4f8;
-    font-size: 18px;
-    font-weight: 600;
-    margin: 24px 0 16px 0;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #2a3441;
-}
-
-.section-subtitle {
-    color: #64748b;
-    font-size: 13px;
-    margin-top: -12px;
-    margin-bottom: 16px;
-}
-
-/* Chart containers */
-.chart-container {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.chart-title {
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-/* Clickable sparkline */
-.sparkline-btn {
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-    display: inline-block;
-}
-
-.sparkline-btn:hover {
-    background: rgba(59, 130, 246, 0.15);
-    transform: scale(1.05);
-}
-
-/* Metrics table */
-.metrics-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    background: var(--bg-card);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-}
-
-.metrics-table th {
-    background: linear-gradient(135deg, #1a2028 0%, #151b23 100%);
-    color: var(--text-primary);
-    font-weight: 600;
-    padding: 14px 16px;
-    text-align: left;
-    border-bottom: 2px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.metrics-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #1e2530;
-    color: var(--text-primary);
-    vertical-align: middle;
-}
-
-.metrics-table tr:hover td {
-    background: rgba(59, 130, 246, 0.05);
-}
-
-.metrics-table .section-row td {
-    background: linear-gradient(90deg, #1a2028 0%, transparent 100%);
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 10px 16px;
-}
-
-.val-positive { color: #22c55e; }
-.val-negative { color: #ef4444; }
-.val-neutral { color: #f0f4f8; }
-.val-muted { color: #64748b; }
-
-/* Modal/Popup styling */
-.chart-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.chart-modal-content {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 90%;
-    max-height: 90%;
-    overflow: auto;
-}
-
-/* Expander styling */
-.streamlit-expanderHeader {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-}
-
-/* Selectbox/Multiselect */
-.stSelectbox > div > div,
-.stMultiSelect > div > div {
-    background: var(--bg-card) !important;
-    border-color: var(--border) !important;
-}
+}}
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-secondary); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3d4a5c; }
+::-webkit-scrollbar {{ width: 8px; height: 8px; }}
+::-webkit-scrollbar-track {{ background: var(--bg-secondary); }}
+::-webkit-scrollbar-thumb {{ background: var(--border); border-radius: 4px; }}
+::-webkit-scrollbar-thumb:hover {{ background: #3d4a5c; }}
+
+/* --- END: keep your current styling --- */
+
 </style>
 """
 
+# Inject CSS once
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Overlays (HTML)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+st.markdown(
+    """
+    <div class="confidential-banner">
+      DEMO DATA · INTERNAL USE ONLY · CONFIDENTIAL
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    f"""
+    <div class="version-tag">
+      v{VERSION} · {ENV}
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="scitech-watermark">
+      SCITECH INVESTMENTS
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # YAHOO FINANCE DATA FETCHER
