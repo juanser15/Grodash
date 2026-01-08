@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SciTech Investments Dashboard v4.1 - Institutional Grade
+SciTech Investments Dashboard v4.2.1 - Institutional Grade
 =========================================================
 Professional performance analytics with:
 - Yahoo Finance benchmark integration
@@ -12,7 +12,7 @@ Professional performance analytics with:
 Author: SciTech Quantitative Research | SciTech Investments
 """
 
-VERSION = "4.1"
+VERSION = "4.2.1"
 
 ENV = "PROD"
 import io
@@ -38,10 +38,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-try:
-    st.session_state["sidebar_state"] = "expanded"
-except Exception:
-    pass
+# Clear cache on version change to ensure fresh deployment
+if 'app_version' not in st.session_state or st.session_state.app_version != VERSION:
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    st.session_state.app_version = VERSION
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # THEME
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1863,27 +1865,6 @@ def main():
                     else:
                         win_rate = metrics.get("Win Rate", 0)
                         kpi_card("Win Rate", f"{win_rate:.1f}%")
-                # Fallback to original KPI cards
-                col1, col2, col3, col4, col5 = st.columns(5)
-                with col1:
-                    cagr = metrics.get("CAGR", 0)
-                    kpi_card("CAGR", f"{cagr:.2f}%", delta=None)
-                with col2:
-                    sharpe = metrics.get("Sharpe Ratio", 0)
-                    kpi_card("Sharpe", f"{sharpe:.2f}")
-                with col3:
-                    max_dd = metrics.get("Max Drawdown", 0)
-                    kpi_card("Max DD", f"{max_dd:.1f}%", delta_positive=False)
-                with col4:
-                    vol = metrics.get("Volatility (Annual)", 0)
-                    kpi_card("Volatility", f"{vol:.1f}%")
-                with col5:
-                    if benchmark_metrics:
-                        beta = benchmark_metrics.get("Beta", 0)
-                        kpi_card("Beta", f"{beta:.2f}" if not pd.isna(beta) else "—")
-                    else:
-                        win_rate = metrics.get("Win Rate", 0)
-                        kpi_card("Win Rate", f"{win_rate:.1f}%")
             
             # Main content: 2 columns
             left_col, right_col = st.columns([1.1, 0.9])
@@ -1977,12 +1958,12 @@ def main():
             with right_col:
                 section_title("Equity Curve", f"vs {selected_benchmark}" if use_benchmark and benchmark_df is not None else None)
                 fig_eq = create_equity_chart(nav_df, benchmark_df, show_dd)
-                st.plotly_chart(fig_eq, use_container_width=True)
+                st.plotly_chart(fig_eq, use_container_width=True, key="eq_main")
                 
                 # Expandable charts
                 with st.expander("Returns Heatmap", expanded=False):
                     fig_heat = create_returns_heatmap(nav_df)
-                    st.plotly_chart(fig_heat, use_container_width=True)
+                    st.plotly_chart(fig_heat, use_container_width=True, key="heatmap_main")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # TRADES OVERVIEW TAB
@@ -2042,16 +2023,13 @@ def main():
                         quality_html = create_trade_quality_html(kpi, COLORS)
                         render_html(quality_html)
                     except Exception as e:
-                        # Fallback to original KPI row - ALL PERCENTAGES
-                        total_ret = filtered["trade_return_pct"].sum() * 100 if "trade_return_pct" in filtered.columns else 0
-                        k1, k2, k3, k4 = st.columns(4)
+                        # Fallback to original KPI row - 3 KPIs without Total Return
+                        k1, k2, k3 = st.columns(3)
                         with k1:
-                            kpi_card("Total Return", f"{total_ret:+.1f}%", delta_positive=total_ret > 0)
-                        with k2:
                             kpi_card("Profit Factor", f"{kpi['pf']:.2f}" if pd.notna(kpi['pf']) else "—")
-                        with k3:
+                        with k2:
                             kpi_card("Win Rate", f"{kpi['win_rate']:.1f}%", f"{kpi['win_n']}/{kpi['n']}")
-                        with k4:
+                        with k3:
                             kpi_card("Trades/Month", f"{kpi['avg_mo']:.1f}" if pd.notna(kpi['avg_mo']) else "—")
                     
                     st.markdown("<br>", unsafe_allow_html=True)
@@ -2062,12 +2040,12 @@ def main():
                     with col1:
                         section_title("Equity Curve")
                         fig_eq = create_trades_equity_curve(filtered)
-                        st.plotly_chart(fig_eq, use_container_width=True)
+                        st.plotly_chart(fig_eq, use_container_width=True, key="eq_trades")
                     
                     with col2:
                         section_title("P/L Attribution")
                         fig_tree = create_attribution_treemap(filtered)
-                        st.plotly_chart(fig_tree, use_container_width=True)
+                        st.plotly_chart(fig_tree, use_container_width=True, key="tree_trades")
                     
                     # Win/Loss stats
                     col3, col4 = st.columns(2)
@@ -2086,7 +2064,7 @@ def main():
                         ))
                         fig.update_layout(**CHART_LAYOUT)
                         fig.update_layout(height=320, showlegend=False)
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, use_container_width=True, key="winloss_bar")
                     
                     with col4:
                         section_title("Long vs Short")
@@ -2104,7 +2082,7 @@ def main():
                         )])
                         fig.update_layout(**CHART_LAYOUT)
                         fig.update_layout(height=320, showlegend=False)
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, use_container_width=True, key="longshort_pie")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # GAIN ATTRIBUTION TAB
@@ -2135,16 +2113,12 @@ def main():
                 total_pnl = filtered["Realized P/L"].sum()
                 
                 # Summary KPIs - all percentages
-                k1, k2, k3, k4 = st.columns(4)
+                k1, k2, k3 = st.columns(3)
                 with k1:
-                    # Total return as % (sum of returns weighted by allocation)
-                    total_ret_pct = filtered["trade_return_pct"].sum() * 100 if "trade_return_pct" in filtered.columns else 0
-                    kpi_card("Total Return", f"{total_ret_pct:+.1f}%")
-                with k2:
                     kpi_card("Total Trades", str(kpi['n']))
-                with k3:
+                with k2:
                     kpi_card("Win Rate", f"{kpi['win_rate']:.1f}%")
-                with k4:
+                with k3:
                     kpi_card("Profit Factor", f"{kpi['pf']:.2f}" if pd.notna(kpi['pf']) else "—")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -2193,7 +2167,7 @@ def main():
                 with col2:
                     section_title("P/L Treemap")
                     fig_tree = create_attribution_treemap(filtered)
-                    st.plotly_chart(fig_tree, use_container_width=True)
+                    st.plotly_chart(fig_tree, use_container_width=True, key="tree_attr")
                     
                     # Symbol selector for detail view
                     section_title("Symbol Deep Dive")
