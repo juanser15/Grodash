@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SciTech Investments Dashboard v4.2.1 - Institutional Grade
+SciTech Investments Dashboard v4.2.2 - Institutional Grade
 =========================================================
 Professional performance analytics with:
 - Yahoo Finance benchmark integration
@@ -12,7 +12,7 @@ Professional performance analytics with:
 Author: SciTech Quantitative Research | SciTech Investments
 """
 
-VERSION = "4.2.1"
+VERSION = "4.2.2"
 
 ENV = "PROD"
 import io
@@ -126,12 +126,30 @@ header {visibility: hidden; height: 0;}
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SIDEBAR STYLING - Premium Look
+   SIDEBAR STYLING - Premium Look (Always Visible)
    ═══════════════════════════════════════════════════════════════ */
 
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0f1419 0%, #0a0e12 100%);
     border-right: 1px solid rgba(42, 52, 65, 0.5);
+    min-width: 320px !important;
+    width: 320px !important;
+}
+
+/* Force sidebar to always be visible */
+section[data-testid="stSidebar"][aria-expanded="false"] {
+    display: block !important;
+    min-width: 320px !important;
+    width: 320px !important;
+    margin-left: 0 !important;
+    transform: none !important;
+}
+
+/* Hide the collapse button */
+button[data-testid="stSidebarCollapseButton"],
+button[kind="headerNoPadding"],
+[data-testid="collapsedControl"] {
+    display: none !important;
 }
 
 section[data-testid="stSidebar"] > div:first-child {
